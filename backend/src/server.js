@@ -11,7 +11,9 @@ const PORT = process.env.PORT || 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://kids-mindful.vercel.app',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
@@ -23,7 +25,9 @@ app.use(cors(corsOptions));
 
 // Additional headers middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://kids-mindful.vercel.app');
+  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : req.headers.origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
   res.header('Access-Control-Allow-Credentials', 'true');
