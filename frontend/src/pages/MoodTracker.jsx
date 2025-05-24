@@ -59,16 +59,19 @@ function MoodTracker() {
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods/user/${user.id}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
+        mode: 'cors',
         credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch mood history');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch mood history');
       }
       
       const data = await response.json();
@@ -108,7 +111,7 @@ function MoodTracker() {
         date: new Date().toISOString()
       };
 
-      console.log('Sending mood data:', moodData); // Debug log
+      console.log('Sending mood data:', moodData);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods`, {
         method: 'POST',
@@ -117,24 +120,19 @@ function MoodTracker() {
           'Accept': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
+        mode: 'cors',
         credentials: 'include',
         body: JSON.stringify(moodData),
       });
 
-      const contentType = response.headers.get("content-type");
-      
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error('Received non-JSON response from server');
-      }
-
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        console.error('Error response:', data); // Debug log
+        console.error('Error response:', data);
         throw new Error(data.message || 'Failed to save mood');
       }
 
-      console.log('Success response:', data); // Debug log
+      console.log('Success response:', data);
       
       setSnackbar({
         open: true,

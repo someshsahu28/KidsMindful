@@ -22,7 +22,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://kids-mindful.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
