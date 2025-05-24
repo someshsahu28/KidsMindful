@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('Registering with URL:', `${API_URL}/auth/register`); // Debug log
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
