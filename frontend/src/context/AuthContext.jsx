@@ -54,25 +54,27 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      console.log('Registering with URL:', `${API_URL}/auth/register`); // Debug log
+      console.log('Starting registration with URL:', `${API_URL}/auth/register`);
+      console.log('Registration data:', userData);
+      
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(userData),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
-        if (errorData.errors) {
-          throw new Error(JSON.stringify(errorData.errors));
-        }
+        console.error('Registration error response:', errorData);
         throw new Error(errorData.message || 'Registration failed');
       }
 
       const data = await response.json();
+      console.log('Registration success response:', data);
 
       if (data.success) {
         localStorage.setItem('token', data.token);
@@ -84,15 +86,10 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      try {
-        const errors = JSON.parse(error.message);
-        return { success: false, errors };
-      } catch {
-        return { 
-          success: false, 
-          error: error.message || 'Unable to connect to server. Please try again later.' 
-        };
-      }
+      return { 
+        success: false, 
+        error: error.message || 'Unable to connect to server. Please try again later.' 
+      };
     }
   };
 

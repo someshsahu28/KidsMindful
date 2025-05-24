@@ -9,30 +9,31 @@ const moodRoutes = require('./routes/moodRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Debug middleware to log requests
+app.use((req, res, next) => {
+  console.log('Incoming Request:');
+  console.log('Origin:', req.headers.origin);
+  console.log('Method:', req.method);
+  console.log('Path:', req.path);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // CORS configuration
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL
-    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173'],
+app.use(cors({
+  origin: ['https://kids-mindful.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+  credentials: false // Set to false since we're using token-based auth
+}));
 
-// Apply CORS middleware
-app.use(cors(corsOptions));
-
-// Additional headers middleware
+// Additional headers for extra safety
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : req.headers.origin);
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
   res.header('Access-Control-Allow-Credentials', 'true');
   
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -57,7 +58,12 @@ app.use((err, req, res, next) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', port: PORT });
+  res.json({ 
+    status: 'ok', 
+    port: PORT,
+    environment: process.env.NODE_ENV,
+    origin: req.headers.origin 
+  });
 });
 
 // Serve static files from the frontend build
