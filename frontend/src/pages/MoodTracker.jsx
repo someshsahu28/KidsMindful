@@ -83,12 +83,30 @@ function MoodTracker() {
   };
 
   const handleMoodSelect = async (index) => {
+    if (!user || !user.id) {
+      setSnackbar({
+        open: true,
+        message: 'Please log in to save your mood.',
+        severity: 'warning'
+      });
+      return;
+    }
+
     setSelectedMood(index);
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 3000);
 
     try {
       setLoading(true);
+      const moodData = {
+        mood: moods[index].name,
+        userId: user.id,
+        note: `Feeling ${moods[index].name.toLowerCase()} today!`,
+        date: new Date().toISOString()
+      };
+
+      console.log('Sending mood data:', moodData); // Debug log
+
       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods`, {
         method: 'POST',
         headers: {
@@ -96,11 +114,7 @@ function MoodTracker() {
           'Accept': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
-        body: JSON.stringify({
-          mood: moods[index].name,
-          userId: user.id,
-          note: `Feeling ${moods[index].name.toLowerCase()} today!`
-        }),
+        body: JSON.stringify(moodData),
       });
 
       const contentType = response.headers.get("content-type");
@@ -108,6 +122,7 @@ function MoodTracker() {
         let errorMessage = 'Failed to save mood';
         if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
+          console.error('Error response:', errorData); // Debug log
           errorMessage = errorData.message || errorMessage;
         }
         throw new Error(errorMessage);
@@ -116,6 +131,7 @@ function MoodTracker() {
       let data;
       if (contentType && contentType.includes("application/json")) {
         data = await response.json();
+        console.log('Success response:', data); // Debug log
       }
       
       setSnackbar({

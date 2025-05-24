@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 
   (process.env.NODE_ENV === 'production'
-    ? 'https://kidsmindful-backend.onrender.com/api'  // Update this with your actual Render backend URL
+    ? 'https://kidsmindful.onrender.com/api'  // Updated to match the actual Render URL
     : 'http://localhost:3000/api');
 
 export const getApiUrl = (endpoint) => {
