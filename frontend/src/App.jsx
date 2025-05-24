@@ -30,7 +30,7 @@ function App() {
             backgroundColor: theme.palette.background.default
           }}
         >
-          <Navbar />
+            <Navbar />
           <Container 
             maxWidth="lg" 
             sx={{ 
