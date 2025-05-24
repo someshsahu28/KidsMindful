@@ -36,8 +36,11 @@ const createSound = (src, volume = 0.5) => {
             console.warn(`Attempted to play unloaded sound: ${src}`);
             // Try to load and play
             sound.load();
-            sound.once('load', () => {
-              sound.play();
+            return new Promise((resolve) => {
+              sound.once('load', () => {
+                const id = sound.play();
+                resolve(id);
+              });
             });
           }
         } catch (error) {
@@ -66,6 +69,38 @@ const createSound = (src, volume = 0.5) => {
       // Add method to check if sound is loaded
       isLoaded: () => {
         return sound.state() === 'loaded';
+      },
+      // Add method to wait for sound to load
+      waitForLoad: () => {
+        return new Promise((resolve) => {
+          if (sound.state() === 'loaded') {
+            resolve();
+          } else {
+            sound.once('load', resolve);
+          }
+        });
+      },
+      // Add event listener support
+      on: (event, callback) => {
+        try {
+          sound.on(event, callback);
+        } catch (error) {
+          console.error(`Error adding event listener for ${src}:`, error);
+        }
+      },
+      once: (event, callback) => {
+        try {
+          sound.once(event, callback);
+        } catch (error) {
+          console.error(`Error adding one-time event listener for ${src}:`, error);
+        }
+      },
+      off: (event, callback) => {
+        try {
+          sound.off(event, callback);
+        } catch (error) {
+          console.error(`Error removing event listener for ${src}:`, error);
+        }
       }
     };
   } catch (error) {
@@ -74,6 +109,7 @@ const createSound = (src, volume = 0.5) => {
     return {
       play: () => {
         console.error(`Cannot play sound ${src}: Sound not created properly`);
+        return Promise.reject(new Error(`Cannot play sound ${src}: Sound not created properly`));
       },
       stop: () => {
         console.error(`Cannot stop sound ${src}: Sound not created properly`);
@@ -81,7 +117,11 @@ const createSound = (src, volume = 0.5) => {
       volume: () => {
         console.error(`Cannot set volume for ${src}: Sound not created properly`);
       },
-      isLoaded: () => false
+      isLoaded: () => false,
+      waitForLoad: () => Promise.reject(new Error(`Cannot load sound ${src}: Sound not created properly`)),
+      on: () => console.error(`Cannot add event listener for ${src}: Sound not created properly`),
+      once: () => console.error(`Cannot add one-time event listener for ${src}: Sound not created properly`),
+      off: () => console.error(`Cannot remove event listener for ${src}: Sound not created properly`)
     };
   }
 };
@@ -162,6 +202,23 @@ const globalSoundControl = {
         value.stop();
       }
     });
+  },
+
+  // Add method to wait for all sounds to load
+  waitForAllSounds: async () => {
+    const allSounds = [];
+    Object.entries(sounds).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        Object.values(value).forEach(sound => {
+          if (sound.waitForLoad) {
+            allSounds.push(sound.waitForLoad());
+          }
+        });
+      } else if (value.waitForLoad) {
+        allSounds.push(value.waitForLoad());
+      }
+    });
+    return Promise.all(allSounds);
   }
 };
 

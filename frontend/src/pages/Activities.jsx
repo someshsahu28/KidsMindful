@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, Box, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import BalloonBreathing from '../components/activities/BalloonBreathing';
@@ -7,6 +7,7 @@ import YogaActivity from '../components/activities/YogaActivity';
 import DanceParty from '../components/activities/DanceParty';
 import MindfulColoring from '../components/activities/MindfulColoring';
 import MusicalMeditation from '../components/activities/MusicalMeditation';
+import sounds from '../utils/sounds';
 
 const activities = [
   {
@@ -55,6 +56,43 @@ const activities = [
 
 function Activities() {
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Preload sounds when the component mounts
+  useEffect(() => {
+    const preloadSounds = async () => {
+      try {
+        // Wait for dance sound to load
+        if (sounds.dance) {
+          await new Promise((resolve) => {
+            if (sounds.dance.isLoaded()) {
+              resolve();
+            } else {
+              const checkLoaded = setInterval(() => {
+                if (sounds.dance.isLoaded()) {
+                  clearInterval(checkLoaded);
+                  resolve();
+                }
+              }, 100);
+            }
+          });
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error preloading sounds:', error);
+        setIsLoading(false);
+      }
+    };
+
+    preloadSounds();
+
+    return () => {
+      // Cleanup sounds when component unmounts
+      if (sounds.dance) {
+        sounds.dance.stop();
+      }
+    };
+  }, []);
 
   const handleActivitySelect = (activity) => {
     setSelectedActivity(activity);
@@ -135,4 +173,4 @@ function Activities() {
   );
 }
 
-export default Activities; 
+export default Activities;
