@@ -54,6 +54,8 @@ function MoodTracker() {
   }, [selectedMood]);
 
   const fetchMoodHistory = async () => {
+    if (!user?.id) return;
+
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods/user/${user.id}`, {
@@ -61,7 +63,8 @@ function MoodTracker() {
           'Authorization': `Bearer ${user.token}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -114,25 +117,24 @@ function MoodTracker() {
           'Accept': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
+        credentials: 'include',
         body: JSON.stringify(moodData),
       });
 
       const contentType = response.headers.get("content-type");
-      if (!response.ok) {
-        let errorMessage = 'Failed to save mood';
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          console.error('Error response:', errorData); // Debug log
-          errorMessage = errorData.message || errorMessage;
-        }
-        throw new Error(errorMessage);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error('Received non-JSON response from server');
       }
 
-      let data;
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-        console.log('Success response:', data); // Debug log
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('Error response:', data); // Debug log
+        throw new Error(data.message || 'Failed to save mood');
       }
+
+      console.log('Success response:', data); // Debug log
       
       setSnackbar({
         open: true,

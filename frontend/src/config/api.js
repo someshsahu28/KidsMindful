@@ -15,4 +15,5 @@ export default {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true, // Enable sending credentials with requests
 }; 
