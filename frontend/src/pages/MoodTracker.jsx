@@ -57,7 +57,7 @@ function MoodTracker() {
   const fetchMoodHistory = async () => {
     try {
       setLoading(true);
-      const data = await fetchWithAuth(`/moods/user/${user.id}`, {
+      const data = await fetchWithAuth(`moods/user/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
@@ -82,7 +82,7 @@ function MoodTracker() {
 
     try {
       setLoading(true);
-      await fetchWithAuth('/moods', {
+      await fetchWithAuth('moods', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${user.token}`

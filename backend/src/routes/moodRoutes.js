@@ -23,17 +23,32 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Create a new mood entry
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { mood, note, userId } = req.body;
+    console.log('Creating mood entry with data:', req.body);
+    const { mood, note } = req.body;
+    const userId = req.user.id;
+
+    if (!mood || !userId) {
+      return res.status(400).json({ message: 'Mood and userId are required' });
+    }
+
     const moodEntry = await MoodEntry.create({
       mood,
       note,
-      userId
+      userId,
+      date: new Date()
     });
+
+    console.log('Mood entry created successfully:', moodEntry);
     res.status(201).json(moodEntry);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to create mood entry', error: error.message });
+    console.error('Error creating mood entry:', error);
+    res.status(500).json({ 
+      message: 'Failed to create mood entry', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -70,17 +85,36 @@ router.get('/stats/:userId', async (req, res) => {
   }
 });
 
-// Get all mood entries for a user
-router.get('/user/:userId', async (req, res) => {
+// Get user's mood entries
+router.get('/user/:userId', authenticateToken, async (req, res) => {
   try {
+    console.log('Fetching mood entries for user:', req.params.userId);
     const { userId } = req.params;
+
+    // Ensure user can only access their own mood entries
+    if (userId !== req.user.id) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
     const moodEntries = await MoodEntry.findAll({
       where: { userId },
-      order: [['date', 'DESC']]
+      order: [['date', 'DESC']],
+      limit: 10,
+      include: [{ 
+        model: User,
+        attributes: ['username', 'name']
+      }]
     });
+
+    console.log(`Found ${moodEntries.length} mood entries`);
     res.json(moodEntries);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch mood entries', error: error.message });
+    console.error('Error fetching mood entries:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch mood entries', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -141,30 +175,6 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching moods:', error);
     res.status(500).json({ message: 'Failed to fetch moods' });
-  }
-});
-
-// Save a new mood
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { mood, userId, note } = req.body;
-    
-    // Validate input
-    if (!mood || !userId) {
-      return res.status(400).json({ message: 'Mood and userId are required' });
-    }
-
-    const newMood = await Mood.create({
-      mood,
-      userId,
-      note,
-      date: new Date()
-    });
-
-    res.status(201).json(newMood);
-  } catch (error) {
-    console.error('Error saving mood:', error);
-    res.status(500).json({ message: 'Failed to save mood' });
   }
 });
 

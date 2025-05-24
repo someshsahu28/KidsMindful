@@ -2,11 +2,16 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://kidsmindful-backend.onrender.com/api'  // Update this with your actual Render backend URL
   : 'http://localhost:5000/api';
 
-export const getApiUrl = (endpoint) => `${API_URL}${endpoint}`;
+export const getApiUrl = (endpoint) => {
+  // Remove leading slash if present to avoid double slashes
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return `${API_URL}/${cleanEndpoint}`;
+};
 
 export const fetchWithAuth = async (endpoint, options = {}) => {
   const url = getApiUrl(endpoint);
   const defaultOptions = {
+    mode: 'cors',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
@@ -14,21 +19,28 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
     },
   };
 
-  const response = await fetch(url, {
+  const mergedOptions = {
     ...defaultOptions,
     ...options,
     headers: {
       ...defaultOptions.headers,
       ...options.headers,
     },
-  });
+  };
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'API request failed');
+  try {
+    const response = await fetch(url, mergedOptions);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
   }
-
-  return response.json();
 };
 
 export default {
