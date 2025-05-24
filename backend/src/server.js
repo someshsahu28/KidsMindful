@@ -12,12 +12,13 @@ const PORT = process.env.PORT || 5000;
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://your-vercel-domain.vercel.app']
+    ? [process.env.FRONTEND_URL]
     : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  exposedHeaders: ['Set-Cookie']
 };
 
 // Middleware
@@ -25,6 +26,15 @@ app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Additional headers for CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (process.env.NODE_ENV === 'production') {
+    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
+  }
+  next();
+});
 
 // Error handling for JSON parsing
 app.use((err, req, res, next) => {

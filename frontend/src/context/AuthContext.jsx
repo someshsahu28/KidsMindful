@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -25,8 +25,6 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include',
-        mode: 'cors',
         body: JSON.stringify({ username, password }),
       });
 
@@ -62,8 +60,6 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include',
-        mode: 'cors',
         body: JSON.stringify(userData),
       });
 
