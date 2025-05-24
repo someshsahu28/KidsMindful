@@ -21,19 +21,24 @@ app.use((req, res, next) => {
 
 // CORS configuration
 app.use(cors({
-  origin: 'https://kids-mindful.vercel.app',
+  origin: ['https://kids-mindful.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
+  credentials: false // Set to false since we're using token-based auth
 }));
 
-// Handle preflight requests
-app.options('*', cors({
-  origin: 'https://kids-mindful.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
-}));
+// Additional headers for extra safety
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 app.use(morgan('dev'));
 app.use(express.json());

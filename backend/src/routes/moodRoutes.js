@@ -1,6 +1,7 @@
 const express = require('express');
 const MoodEntry = require('../models/MoodEntry');
 const User = require('../models/User');
+const Mood = require('../models/Mood');
 const { authenticateToken } = require('../middleware/auth');
 const { sequelize } = require('sequelize');
 
@@ -22,20 +23,13 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Create a new mood entry
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { mood, note, userId } = req.body;
-    
-    // Validate input
-    if (!mood || !userId) {
-      return res.status(400).json({ message: 'Mood and userId are required' });
-    }
-
     const moodEntry = await MoodEntry.create({
       mood,
       note,
-      userId,
-      date: new Date()
+      userId
     });
     res.status(201).json(moodEntry);
   } catch (error) {
@@ -44,10 +38,10 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get mood statistics for a user
-router.get('/stats/:userId', authenticateToken, async (req, res) => {
+router.get('/stats/:userId', async (req, res) => {
   try {
     const moodEntries = await MoodEntry.findAll({
-      where: { userId: req.params.userId },
+      where: { UserId: req.params.userId },
       order: [['createdAt', 'DESC']]
     });
 
@@ -62,9 +56,7 @@ router.get('/stats/:userId', authenticateToken, async (req, res) => {
     let intensitySum = 0;
     moodEntries.forEach(entry => {
       stats.byMood[entry.mood] = (stats.byMood[entry.mood] || 0) + 1;
-      if (entry.intensity) {
-        intensitySum += entry.intensity;
-      }
+      intensitySum += entry.intensity;
     });
 
     stats.averageIntensity = moodEntries.length ? intensitySum / moodEntries.length : 0;
@@ -79,13 +71,12 @@ router.get('/stats/:userId', authenticateToken, async (req, res) => {
 });
 
 // Get all mood entries for a user
-router.get('/user/:userId', authenticateToken, async (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const moodEntries = await MoodEntry.findAll({
       where: { userId },
-      order: [['date', 'DESC']],
-      limit: 10
+      order: [['date', 'DESC']]
     });
     res.json(moodEntries);
   } catch (error) {
@@ -94,7 +85,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
 });
 
 // Get a specific mood entry
-router.get('/entry/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
@@ -108,7 +99,7 @@ router.get('/entry/:id', async (req, res) => {
 });
 
 // Update a mood entry
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { mood, note } = req.body;
@@ -124,7 +115,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a mood entry
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
@@ -135,6 +126,63 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Mood entry deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete mood entry', error: error.message });
+  }
+});
+
+// Get moods for a user
+router.get('/user/:userId', authenticateToken, async (req, res) => {
+  try {
+    const moods = await Mood.findAll({
+      where: { userId: req.params.userId },
+      order: [['date', 'DESC']],
+      limit: 10
+    });
+    res.json(moods);
+  } catch (error) {
+    console.error('Error fetching moods:', error);
+    res.status(500).json({ message: 'Failed to fetch moods' });
+  }
+});
+
+// Save a new mood
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const { mood, userId, note } = req.body;
+    
+    // Validate input
+    if (!mood || !userId) {
+      return res.status(400).json({ message: 'Mood and userId are required' });
+    }
+
+    const newMood = await Mood.create({
+      mood,
+      userId,
+      note,
+      date: new Date()
+    });
+
+    res.status(201).json(newMood);
+  } catch (error) {
+    console.error('Error saving mood:', error);
+    res.status(500).json({ message: 'Failed to save mood' });
+  }
+});
+
+// Get mood statistics for a user
+router.get('/stats/:userId', authenticateToken, async (req, res) => {
+  try {
+    const moods = await Mood.findAll({
+      where: { userId: req.params.userId },
+      attributes: [
+        'mood',
+        [sequelize.fn('COUNT', sequelize.col('mood')), 'count']
+      ],
+      group: ['mood']
+    });
+    res.json(moods);
+  } catch (error) {
+    console.error('Error fetching mood stats:', error);
+    res.status(500).json({ message: 'Failed to fetch mood statistics' });
   }
 });
 
