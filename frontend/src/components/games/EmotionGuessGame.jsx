@@ -29,7 +29,8 @@ function EmotionGuessGame({ onGameComplete }) {
   const generateNewRound = () => {
     if (round > 10) {
       setGameOver(true);
-      onGameComplete(score);
+      const finalScore = Math.floor((score / 10) * 100);
+      onGameComplete(finalScore);
       return;
     }
     const emotion = emotions[Math.floor(Math.random() * emotions.length)];

@@ -137,7 +137,9 @@ function EmotionExplorer({ onGameComplete }) {
     } else if (round > 10) {
       setGameOver(true);
       sounds.effects.complete.play();
-      onGameComplete(score);
+      // Calculate final score as percentage
+      const finalScore = Math.floor((score / 10) * 100);
+      onGameComplete(finalScore);
     }
   }, [round]);
 

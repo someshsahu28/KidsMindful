@@ -47,13 +47,31 @@ function EmotionDetection({ onGameComplete }) {
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
 
   useEffect(() => {
+    return () => {
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      soundManager.stopAllSounds();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!gameOver) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
             setGameOver(true);
-            sounds.effects.complete.play();
+            if (sounds.effects) {
+              Object.values(sounds.effects).forEach(sound => {
+                if (sound && sound.stop) sound.stop();
+              });
+            }
+            if (sounds.effects?.complete) {
+              sounds.effects.complete.play();
+            }
             onGameComplete(score);
             return 0;
           }
@@ -63,6 +81,11 @@ function EmotionDetection({ onGameComplete }) {
 
       return () => {
         clearInterval(timer);
+        if (sounds.effects) {
+          Object.values(sounds.effects).forEach(sound => {
+            if (sound && sound.stop) sound.stop();
+          });
+        }
         soundManager.stopAllSounds();
       };
     }
@@ -73,13 +96,19 @@ function EmotionDetection({ onGameComplete }) {
       startNewRound();
     } else if (round >= 10) {
       setGameOver(true);
-      sounds.effects.complete.play();
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      if (sounds.effects?.complete) {
+        sounds.effects.complete.play();
+      }
       onGameComplete(score);
     }
   }, [round]);
 
   useEffect(() => {
-    // Level progression
     if (consecutiveCorrect >= 3 && currentLevel === LEVELS.EASY) {
       setCurrentLevel(LEVELS.MEDIUM);
       setTimeLeft(LEVELS.MEDIUM.timeLimit);

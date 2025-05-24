@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Button, CircularProgress, Paper } from '@mui/material';
 import { motion } from 'framer-motion';
 import sounds from '../../utils/sounds';
+import { soundManager } from '../../utils/soundManager';
 
 const flowers = [
   { emoji: '🌸', name: 'Cherry Blossom', color: '#FFB7EB' },
@@ -22,11 +23,33 @@ function MemoryGarden({ onGameComplete }) {
 
   useEffect(() => {
     return () => {
-      // Cleanup sounds when component unmounts
-      sounds.match.stop();
-      sounds.effects.error.stop();
+      // Stop all sounds when component unmounts
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      if (sounds.match && sounds.match.stop) {
+        sounds.match.stop();
+      }
+      soundManager.stopAllSounds();
     };
   }, []);
+
+  useEffect(() => {
+    if (gameOver) {
+      // Stop all sounds when game is over
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      if (sounds.match && sounds.match.stop) {
+        sounds.match.stop();
+      }
+      soundManager.stopAllSounds();
+    }
+  }, [gameOver]);
 
   useEffect(() => {
     if (round <= 10 && !gameOver && !showInstructions) {
@@ -42,11 +65,24 @@ function MemoryGarden({ onGameComplete }) {
 
   const playSequence = async (seq) => {
     setPlaying(true);
+    // Stop any currently playing sounds
+    if (sounds.effects) {
+      Object.values(sounds.effects).forEach(sound => {
+        if (sound && sound.stop) sound.stop();
+      });
+    }
+    if (sounds.match && sounds.match.stop) {
+      sounds.match.stop();
+    }
+    soundManager.stopAllSounds();
+
     // Show each flower in sequence
     for (let i = 0; i < seq.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 1500));
       try {
-        sounds.match.play();
+        if (sounds.match && sounds.match.play) {
+          sounds.match.play();
+        }
       } catch (error) {
         console.error('Error playing sound:', error);
       }
@@ -62,7 +98,9 @@ function MemoryGarden({ onGameComplete }) {
     setUserSequence(newUserSequence);
     
     try {
-      sounds.match.play();
+      if (sounds.match && sounds.match.play) {
+        sounds.match.play();
+      }
     } catch (error) {
       console.error('Error playing sound:', error);
     }
@@ -71,7 +109,13 @@ function MemoryGarden({ onGameComplete }) {
     if (newUserSequence[newUserSequence.length - 1].name !== 
         sequence[newUserSequence.length - 1].name) {
       try {
-        sounds.effects.error.play();
+        if (sounds.effects && sounds.effects.error) {
+          // Stop other sounds before playing error sound
+          Object.values(sounds.effects).forEach(sound => {
+            if (sound && sound.stop) sound.stop();
+          });
+          sounds.effects.error.play();
+        }
       } catch (error) {
         console.error('Error playing sound:', error);
       }
@@ -87,12 +131,33 @@ function MemoryGarden({ onGameComplete }) {
       setRound(round + 1);
       if (round >= 10) {
         setGameOver(true);
+        // Stop all sounds before playing completion sound
+        if (sounds.effects) {
+          Object.values(sounds.effects).forEach(sound => {
+            if (sound && sound.stop) sound.stop();
+          });
+        }
+        if (sounds.match && sounds.match.stop) {
+          sounds.match.stop();
+        }
+        soundManager.stopAllSounds();
         onGameComplete(score + 1);
       }
     }
   };
 
   const startGame = () => {
+    // Stop all sounds before starting new game
+    if (sounds.effects) {
+      Object.values(sounds.effects).forEach(sound => {
+        if (sound && sound.stop) sound.stop();
+      });
+    }
+    if (sounds.match && sounds.match.stop) {
+      sounds.match.stop();
+    }
+    soundManager.stopAllSounds();
+    
     setShowInstructions(false);
     setSequence([]);
     setUserSequence([]);

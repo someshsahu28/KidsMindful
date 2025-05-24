@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { startTransition } from 'react';
 import sounds from '../utils/sounds';
+import { soundManager } from '../utils/soundManager';
 import MemoryGarden from '../components/games/MemoryGarden';
 import EmotionExplorer from '../components/games/EmotionExplorer';
 import MemoryGame from '../components/games/MemoryGame';
@@ -27,22 +28,114 @@ function Games() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
 
-  const handleGameComplete = () => {
+  // Add effect to clean up sounds when component unmounts
+  useEffect(() => {
+    return () => {
+      // Stop all sounds when component unmounts
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      soundManager.stopAllSounds();
+    };
+  }, []);
+
+  // Add effect to clean up sounds when game changes
+  useEffect(() => {
+    // Stop all sounds when changing games
+    if (sounds.effects) {
+      Object.values(sounds.effects).forEach(sound => {
+        if (sound && sound.stop) sound.stop();
+      });
+    }
+    soundManager.stopAllSounds();
+  }, [selectedGame]);
+
+  const updateRewardsProgress = (gameId, score) => {
+    // Load current progress
+    const savedProgress = localStorage.getItem('rewardsProgress');
+    let progress = savedProgress ? JSON.parse(savedProgress) : {
+      points: 0,
+      level: 1,
+      earnedBadges: [],
+      completedActivities: {}
+    };
+
+    // Map game IDs to badge IDs
+    const gameToBadgeMap = {
+      'memory-garden': 'focus',
+      'emotion-explorer': 'mindful',
+      'memory-match': 'focus',
+      'color-match': 'focus',
+      'emotion-detective': 'mindful',
+      'animal-sounds': 'focus'
+    };
+
+    // Update points and completed activities
+    progress.points += 1;
+    const badgeId = gameToBadgeMap[gameId];
+    if (badgeId) {
+      progress.completedActivities[badgeId] = (progress.completedActivities[badgeId] || 0) + 1;
+    }
+
+    // Check for new badges
+    const badges = [
+      { id: 'focus', required: 5 },
+      { id: 'mindful', required: 10 },
+      { id: 'creative', required: 3 },
+      { id: 'story', required: 5 },
+      { id: 'dance', required: 10 },
+      { id: 'helper', required: 5 }
+    ];
+
+    badges.forEach(badge => {
+      if (!progress.earnedBadges.includes(badge.id) &&
+          progress.completedActivities[badge.id] >= badge.required) {
+        progress.earnedBadges.push(badge.id);
+        if (sounds.effects?.success) {
+          sounds.effects.success.play();
+        }
+      }
+    });
+
+    // Save updated progress
+    localStorage.setItem('rewardsProgress', JSON.stringify(progress));
+  };
+
+  const handleGameComplete = (score) => {
     startTransition(() => {
+      setFinalScore(score);
       setGameComplete(true);
       setShowConfetti(true);
       if (sounds.effects?.success) {
         sounds.effects.success.play();
       }
+      
+      // Update rewards progress
+      if (selectedGame) {
+        updateRewardsProgress(selectedGame, score);
+      }
+      
       setTimeout(() => setShowConfetti(false), 5000);
     });
   };
 
   const handleGameSelect = (game) => {
     startTransition(() => {
+      // Stop all sounds before switching games
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      soundManager.stopAllSounds();
+      
       setSelectedGame(game.id);
       setGameComplete(false);
+      setFinalScore(0);
       if (sounds.effects?.click) {
         sounds.effects.click.play();
       }
@@ -51,8 +144,17 @@ function Games() {
 
   const handlePlayAgain = () => {
     startTransition(() => {
+      // Stop all sounds before going back
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      soundManager.stopAllSounds();
+      
       setSelectedGame(null);
-    setGameComplete(false);
+      setGameComplete(false);
+      setFinalScore(0);
       if (sounds.effects?.click) {
         sounds.effects.click.play();
       }
@@ -245,9 +347,17 @@ function Games() {
             <Typography variant="h3" gutterBottom>
               🎉 Great Job! 🎉
             </Typography>
-            <Typography variant="h5">
+            <Typography variant="h5" gutterBottom>
               You completed the game!
-          </Typography>
+            </Typography>
+            <Typography variant="h6" color="primary">
+              Score: {finalScore}
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 2, color: '#666' }}>
+              You earned a reward point! 🌟
+              <br />
+              Check your rewards garden to see your progress!
+            </Typography>
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>

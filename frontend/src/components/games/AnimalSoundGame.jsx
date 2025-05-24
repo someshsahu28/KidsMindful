@@ -81,7 +81,8 @@ function AnimalSoundGame({ onGameComplete }) {
           setCurrentLevel(LEVELS.HARD);
         } else {
           setGameOver(true);
-          onGameComplete(totalScore + levelScore);
+          const finalScore = totalScore + levelScore;
+          onGameComplete(finalScore);
         }
         setRound(1);
         setScore(0);
@@ -90,7 +91,8 @@ function AnimalSoundGame({ onGameComplete }) {
         // Failed to advance, game over
         sounds.effects.error.play();
         setGameOver(true);
-        onGameComplete(totalScore + levelScore);
+        const finalScore = totalScore + levelScore;
+        onGameComplete(finalScore);
       }
     }
   }, [round, currentLevel]);
