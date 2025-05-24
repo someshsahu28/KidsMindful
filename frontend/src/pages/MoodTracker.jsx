@@ -15,7 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useAuth } from '../context/AuthContext';
-import { getApiUrl } from '../config/api';
+import { fetchWithAuth } from '../config/api';
 
 const moods = [
   { emoji: '😊', name: 'Happy', color: '#FFD700', message: "That's wonderful! Keep spreading joy!" },
@@ -57,19 +57,11 @@ function MoodTracker() {
   const fetchMoodHistory = async () => {
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl(`/moods/user/${user.id}`), {
+      const data = await fetchWithAuth(`/moods/user/${user.id}`, {
         headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Accept': 'application/json'
+          'Authorization': `Bearer ${user.token}`
         }
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to fetch mood history');
-      }
-      
-      const data = await response.json();
       setMoodHistory(data);
     } catch (error) {
       console.error('Error fetching mood history:', error);
@@ -90,12 +82,10 @@ function MoodTracker() {
 
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl('/moods'), {
+      await fetchWithAuth('/moods', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`,
-          'Accept': 'application/json'
+          'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify({
           mood: moods[index].name,
@@ -104,12 +94,6 @@ function MoodTracker() {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to save mood');
-      }
-
-      const data = await response.json();
       setSnackbar({
         open: true,
         message: moods[index].message,
