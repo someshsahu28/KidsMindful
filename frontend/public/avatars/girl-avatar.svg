@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Face -->
+  <circle cx="100" cy="100" r="80" fill="#FFD3B6"/>
+  
+  <!-- Hair -->
+  <path d="M40 100 Q40 40 100 40 Q160 40 160 100 Q160 140 100 140 Q40 140 40 100 Z" fill="#8B4513"/>
+  
+  <!-- Hair Bow -->
+  <path d="M140 50 Q150 40 160 50 Q170 60 160 70 Q150 80 140 70 Q130 60 140 50 Z" fill="#FF69B4"/>
+  
+  <!-- Eyes -->
+  <circle cx="80" cy="90" r="8" fill="#4A4A4A"/>
+  <circle cx="120" cy="90" r="8" fill="#4A4A4A"/>
+  
+  <!-- Eyelashes -->
+  <line x1="75" y1="85" x2="70" y2="80" stroke="#4A4A4A" stroke-width="2"/>
+  <line x1="80" y1="83" x2="78" y2="77" stroke="#4A4A4A" stroke-width="2"/>
+  <line x1="85" y1="85" x2="83" y2="80" stroke="#4A4A4A" stroke-width="2"/>
+  
+  <line x1="115" y1="85" x2="110" y2="80" stroke="#4A4A4A" stroke-width="2"/>
+  <line x1="120" y1="83" x2="118" y2="77" stroke="#4A4A4A" stroke-width="2"/>
+  <line x1="125" y1="85" x2="123" y2="80" stroke="#4A4A4A" stroke-width="2"/>
+  
+  <!-- Eyebrows -->
+  <path d="M70 80 Q80 75 90 80" stroke="#8B4513" stroke-width="3" fill="none"/>
+  <path d="M110 80 Q120 75 130 80" stroke="#8B4513" stroke-width="3" fill="none"/>
+  
+  <!-- Smile -->
+  <path d="M80 120 Q100 140 120 120" stroke="#FF6B6B" stroke-width="3" fill="none"/>
+  
+  <!-- Nose -->
+  <circle cx="100" cy="105" r="4" fill="#FFB6A3"/>
+  
+  <!-- Blush -->
+  <circle cx="75" cy="115" r="8" fill="#FFB6A3" opacity="0.5"/>
+  <circle cx="125" cy="115" r="8" fill="#FFB6A3" opacity="0.5"/>
+  
+  <!-- Dress -->
+  <path d="M60 160 Q100 180 140 160 L150 200 L50 200 Z" fill="#FF69B4"/>
+  
+  <!-- Necklace -->
+  <path d="M80 150 Q100 160 120 150" stroke="#FFD700" stroke-width="3" fill="none"/>
+  <circle cx="100" cy="155" r="3" fill="#FFD700"/>
+</svg> 

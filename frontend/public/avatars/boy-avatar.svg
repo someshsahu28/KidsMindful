@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Face -->
+  <circle cx="100" cy="100" r="80" fill="#FFD3B6"/>
+  
+  <!-- Hair -->
+  <path d="M60 70 Q100 40 140 70 L140 90 Q100 60 60 90 Z" fill="#8B4513"/>
+  
+  <!-- Eyes -->
+  <circle cx="80" cy="90" r="8" fill="#4A4A4A"/>
+  <circle cx="120" cy="90" r="8" fill="#4A4A4A"/>
+  
+  <!-- Eyebrows -->
+  <path d="M70 80 Q80 75 90 80" stroke="#8B4513" stroke-width="3" fill="none"/>
+  <path d="M110 80 Q120 75 130 80" stroke="#8B4513" stroke-width="3" fill="none"/>
+  
+  <!-- Smile -->
+  <path d="M80 120 Q100 140 120 120" stroke="#FF6B6B" stroke-width="3" fill="none"/>
+  
+  <!-- Nose -->
+  <circle cx="100" cy="105" r="5" fill="#FFB6A3"/>
+  
+  <!-- Freckles -->
+  <circle cx="85" cy="110" r="2" fill="#FFB6A3"/>
+  <circle cx="115" cy="110" r="2" fill="#FFB6A3"/>
+  <circle cx="90" cy="115" r="2" fill="#FFB6A3"/>
+  <circle cx="110" cy="115" r="2" fill="#FFB6A3"/>
+  
+  <!-- T-shirt -->
+  <path d="M60 160 Q100 180 140 160 L140 200 L60 200 Z" fill="#4A90E2"/>
+</svg> 

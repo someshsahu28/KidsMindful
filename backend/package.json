@@ -1,0 +1,32 @@
+{
+  "name": "mental-health-kids-app-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend for kids mental health app",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "if not exist dist mkdir dist && xcopy /s /y src dist\\",
+    "test": "jest"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "sequelize": "^6.35.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.21",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.8.3"
+  }
+}
