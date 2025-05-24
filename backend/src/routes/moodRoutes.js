@@ -1,7 +1,6 @@
 const express = require('express');
 const MoodEntry = require('../models/MoodEntry');
 const User = require('../models/User');
-const Mood = require('../models/Mood');
 const { authenticateToken } = require('../middleware/auth');
 const { sequelize } = require('sequelize');
 
@@ -25,10 +24,9 @@ router.get('/:userId', async (req, res) => {
 // Create a new mood entry
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    console.log('Creating mood entry with data:', req.body);
-    const { mood, note } = req.body;
-    const userId = req.user.id;
-
+    const { mood, note, userId } = req.body;
+    
+    // Validate input
     if (!mood || !userId) {
       return res.status(400).json({ message: 'Mood and userId are required' });
     }
@@ -39,24 +37,17 @@ router.post('/', authenticateToken, async (req, res) => {
       userId,
       date: new Date()
     });
-
-    console.log('Mood entry created successfully:', moodEntry);
     res.status(201).json(moodEntry);
   } catch (error) {
-    console.error('Error creating mood entry:', error);
-    res.status(500).json({ 
-      message: 'Failed to create mood entry', 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    res.status(400).json({ message: 'Failed to create mood entry', error: error.message });
   }
 });
 
 // Get mood statistics for a user
-router.get('/stats/:userId', async (req, res) => {
+router.get('/stats/:userId', authenticateToken, async (req, res) => {
   try {
     const moodEntries = await MoodEntry.findAll({
-      where: { UserId: req.params.userId },
+      where: { userId: req.params.userId },
       order: [['createdAt', 'DESC']]
     });
 
@@ -71,7 +62,9 @@ router.get('/stats/:userId', async (req, res) => {
     let intensitySum = 0;
     moodEntries.forEach(entry => {
       stats.byMood[entry.mood] = (stats.byMood[entry.mood] || 0) + 1;
-      intensitySum += entry.intensity;
+      if (entry.intensity) {
+        intensitySum += entry.intensity;
+      }
     });
 
     stats.averageIntensity = moodEntries.length ? intensitySum / moodEntries.length : 0;
@@ -85,41 +78,23 @@ router.get('/stats/:userId', async (req, res) => {
   }
 });
 
-// Get user's mood entries
+// Get all mood entries for a user
 router.get('/user/:userId', authenticateToken, async (req, res) => {
   try {
-    console.log('Fetching mood entries for user:', req.params.userId);
     const { userId } = req.params;
-
-    // Ensure user can only access their own mood entries
-    if (userId !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
     const moodEntries = await MoodEntry.findAll({
       where: { userId },
       order: [['date', 'DESC']],
-      limit: 10,
-      include: [{ 
-        model: User,
-        attributes: ['username', 'name']
-      }]
+      limit: 10
     });
-
-    console.log(`Found ${moodEntries.length} mood entries`);
     res.json(moodEntries);
   } catch (error) {
-    console.error('Error fetching mood entries:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch mood entries', 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    res.status(500).json({ message: 'Failed to fetch mood entries', error: error.message });
   }
 });
 
 // Get a specific mood entry
-router.get('/:id', async (req, res) => {
+router.get('/entry/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
@@ -133,7 +108,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a mood entry
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { mood, note } = req.body;
@@ -149,7 +124,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a mood entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
@@ -160,39 +135,6 @@ router.delete('/:id', async (req, res) => {
     res.json({ message: 'Mood entry deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete mood entry', error: error.message });
-  }
-});
-
-// Get moods for a user
-router.get('/user/:userId', authenticateToken, async (req, res) => {
-  try {
-    const moods = await Mood.findAll({
-      where: { userId: req.params.userId },
-      order: [['date', 'DESC']],
-      limit: 10
-    });
-    res.json(moods);
-  } catch (error) {
-    console.error('Error fetching moods:', error);
-    res.status(500).json({ message: 'Failed to fetch moods' });
-  }
-});
-
-// Get mood statistics for a user
-router.get('/stats/:userId', authenticateToken, async (req, res) => {
-  try {
-    const moods = await Mood.findAll({
-      where: { userId: req.params.userId },
-      attributes: [
-        'mood',
-        [sequelize.fn('COUNT', sequelize.col('mood')), 'count']
-      ],
-      group: ['mood']
-    });
-    res.json(moods);
-  } catch (error) {
-    console.error('Error fetching mood stats:', error);
-    res.status(500).json({ message: 'Failed to fetch mood statistics' });
   }
 });
 
