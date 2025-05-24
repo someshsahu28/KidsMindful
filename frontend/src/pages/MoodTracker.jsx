@@ -56,9 +56,11 @@ function MoodTracker() {
   const fetchMoodHistory = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/moods/user/${user.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods/user/${user.id}`, {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
       
@@ -87,10 +89,11 @@ function MoodTracker() {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/moods', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify({
