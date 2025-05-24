@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../config/api';
 
 const moods = [
   { emoji: '😊', name: 'Happy', color: '#FFD700', message: "That's wonderful! Keep spreading joy!" },
@@ -56,14 +57,16 @@ function MoodTracker() {
   const fetchMoodHistory = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/moods/user/${user.id}`, {
+      const response = await fetch(getApiUrl(`/moods/user/${user.id}`), {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
         }
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch mood history');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch mood history');
       }
       
       const data = await response.json();
@@ -72,7 +75,7 @@ function MoodTracker() {
       console.error('Error fetching mood history:', error);
       setSnackbar({
         open: true,
-        message: 'Could not load your mood history. Please try again later.',
+        message: error.message || 'Could not load your mood history. Please try again later.',
         severity: 'error'
       });
     } finally {
@@ -87,11 +90,12 @@ function MoodTracker() {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/moods', {
+      const response = await fetch(getApiUrl('/moods'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           mood: moods[index].name,
@@ -100,21 +104,12 @@ function MoodTracker() {
         }),
       });
 
-      const contentType = response.headers.get("content-type");
       if (!response.ok) {
-        let errorMessage = 'Failed to save mood';
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        }
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save mood');
       }
 
-      let data;
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      }
-      
+      const data = await response.json();
       setSnackbar({
         open: true,
         message: moods[index].message,
