@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useAuth } from '../context/AuthContext';
+import { fetchWithAuth } from '../utils/api';
 
 const moods = [
   { emoji: '😊', name: 'Happy', color: '#FFD700', message: "That's wonderful! Keep spreading joy!" },
@@ -39,13 +40,13 @@ function MoodTracker() {
   const [moodHistory, setMoodHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [encouragement, setEncouragement] = useState('');
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && token) {
       fetchMoodHistory();
     }
-  }, [user]);
+  }, [user, token]);
 
   useEffect(() => {
     if (selectedMood !== null) {
@@ -54,26 +55,11 @@ function MoodTracker() {
   }, [selectedMood]);
 
   const fetchMoodHistory = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !token) return;
 
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods/user/${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        mode: 'cors',
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to fetch mood history');
-      }
-      
+      const response = await fetchWithAuth(`/moods/user/${user.id}`);
       const data = await response.json();
       setMoodHistory(data);
     } catch (error) {
@@ -89,7 +75,7 @@ function MoodTracker() {
   };
 
   const handleMoodSelect = async (index) => {
-    if (!user || !user.id) {
+    if (!user || !user.id || !token) {
       setSnackbar({
         open: true,
         message: 'Please log in to save your mood.',
@@ -113,25 +99,12 @@ function MoodTracker() {
 
       console.log('Sending mood data:', moodData);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/moods`, {
+      const response = await fetchWithAuth('/moods', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        mode: 'cors',
-        credentials: 'include',
         body: JSON.stringify(moodData),
       });
 
-      const data = await response.json().catch(() => ({}));
-      
-      if (!response.ok) {
-        console.error('Error response:', data);
-        throw new Error(data.message || 'Failed to save mood');
-      }
-
+      const data = await response.json();
       console.log('Success response:', data);
       
       setSnackbar({

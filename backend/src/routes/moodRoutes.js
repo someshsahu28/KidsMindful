@@ -23,17 +23,40 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Create a new mood entry
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { mood, note, userId } = req.body;
+    
+    // Validate input
+    if (!mood || !userId) {
+      return res.status(400).json({ message: 'Mood and userId are required' });
+    }
+
+    // Verify user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify user is authorized
+    if (userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Unauthorized to create mood for this user' });
+    }
+
     const moodEntry = await MoodEntry.create({
       mood,
       note,
-      userId
+      userId,
+      date: new Date()
     });
+
     res.status(201).json(moodEntry);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to create mood entry', error: error.message });
+    console.error('Error creating mood entry:', error);
+    res.status(400).json({ 
+      message: 'Failed to create mood entry', 
+      error: error.message 
+    });
   }
 });
 
@@ -70,62 +93,95 @@ router.get('/stats/:userId', async (req, res) => {
   }
 });
 
-// Get all mood entries for a user
-router.get('/user/:userId', async (req, res) => {
+// Get mood entries for a user
+router.get('/user/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Verify user is authorized
+    if (userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Unauthorized to view moods for this user' });
+    }
+
     const moodEntries = await MoodEntry.findAll({
       where: { userId },
-      order: [['date', 'DESC']]
+      order: [['date', 'DESC']],
+      limit: 10
     });
+
     res.json(moodEntries);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch mood entries', error: error.message });
+    console.error('Error fetching mood entries:', error);
+    res.status(500).json({ message: 'Failed to fetch mood entries' });
   }
 });
 
 // Get a specific mood entry
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
+
     if (!moodEntry) {
       return res.status(404).json({ message: 'Mood entry not found' });
     }
+
+    // Verify user is authorized
+    if (moodEntry.userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Unauthorized to view this mood entry' });
+    }
+
     res.json(moodEntry);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch mood entry', error: error.message });
+    console.error('Error fetching mood entry:', error);
+    res.status(500).json({ message: 'Failed to fetch mood entry' });
   }
 });
 
 // Update a mood entry
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { mood, note } = req.body;
     const moodEntry = await MoodEntry.findByPk(id);
+
     if (!moodEntry) {
       return res.status(404).json({ message: 'Mood entry not found' });
     }
+
+    // Verify user is authorized
+    if (moodEntry.userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Unauthorized to update this mood entry' });
+    }
+
     await moodEntry.update({ mood, note });
     res.json(moodEntry);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update mood entry', error: error.message });
+    console.error('Error updating mood entry:', error);
+    res.status(500).json({ message: 'Failed to update mood entry' });
   }
 });
 
 // Delete a mood entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const moodEntry = await MoodEntry.findByPk(id);
+
     if (!moodEntry) {
       return res.status(404).json({ message: 'Mood entry not found' });
     }
+
+    // Verify user is authorized
+    if (moodEntry.userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Unauthorized to delete this mood entry' });
+    }
+
     await moodEntry.destroy();
     res.json({ message: 'Mood entry deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete mood entry', error: error.message });
+    console.error('Error deleting mood entry:', error);
+    res.status(500).json({ message: 'Failed to delete mood entry' });
   }
 });
 
@@ -141,30 +197,6 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching moods:', error);
     res.status(500).json({ message: 'Failed to fetch moods' });
-  }
-});
-
-// Save a new mood
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { mood, userId, note } = req.body;
-    
-    // Validate input
-    if (!mood || !userId) {
-      return res.status(400).json({ message: 'Mood and userId are required' });
-    }
-
-    const newMood = await Mood.create({
-      mood,
-      userId,
-      note,
-      date: new Date()
-    });
-
-    res.status(201).json(newMood);
-  } catch (error) {
-    console.error('Error saving mood:', error);
-    res.status(500).json({ message: 'Failed to save mood' });
   }
 });
 

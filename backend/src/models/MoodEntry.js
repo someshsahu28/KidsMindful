@@ -10,7 +10,10 @@ const MoodEntry = sequelize.define('MoodEntry', {
   },
   mood: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: true
+    }
   },
   note: {
     type: DataTypes.TEXT,
@@ -18,7 +21,8 @@ const MoodEntry = sequelize.define('MoodEntry', {
   },
   date: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+    defaultValue: DataTypes.NOW,
+    allowNull: false
   },
   userId: {
     type: DataTypes.UUID,
@@ -30,6 +34,8 @@ const MoodEntry = sequelize.define('MoodEntry', {
   }
 });
 
-MoodEntry.belongsTo(User);
+// Define associations
+MoodEntry.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(MoodEntry, { foreignKey: 'userId' });
 
 module.exports = MoodEntry; 
