@@ -9,7 +9,11 @@ export const getApiUrl = (endpoint) => {
   return `${baseUrl}${cleanEndpoint}`;
 };
 
-export default {
+export default {k;cmlsdc;
+  mdclsdnlcs
+  ml;cmsc
+  mln s
+  m; ,x,' '
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
