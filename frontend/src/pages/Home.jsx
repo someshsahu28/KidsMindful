@@ -157,28 +157,28 @@ function Home() {
         </motion.div>
 
       <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: { xs: 4, sm: 6 } }}>
-        {features.map((feature, index) => (
-          <Grid item xs={12} sm={6} key={feature.title}>
-            <motion.div
+          {features.map((feature, index) => (
+            <Grid item xs={12} sm={6} key={feature.title}>
+              <motion.div
               initial={{ x: index % 2 === 0 ? -50 : 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -8, transition: { duration: 0.2 } }}
-            >
-              <Card
+              >
+                <Card
                 onClick={() => navigate(feature.path)}
-                sx={{
-                  height: '100%',
-                  cursor: 'pointer',
+                  sx={{
+                    height: '100%',
+                    cursor: 'pointer',
                   borderRadius: { xs: '16px', sm: '24px' },
                   background: `linear-gradient(135deg, ${feature.color} 0%, ${feature.color}DD 100%)`,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
                   overflow: 'hidden',
                   position: 'relative',
-                  '&:hover': {
+                    '&:hover': {
                     transform: 'translateY(-8px)',
                     boxShadow: `0 12px 40px ${feature.color}40`,
-                  },
+                    },
                   transition: 'all 0.3s ease',
                   '&::before': {
                     content: '""',
@@ -191,15 +191,15 @@ function Home() {
                     opacity: 0.6,
                   }
                 }}
-              >
-                <CardContent
-                  sx={{ 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
+                >
+                  <CardContent
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
                     p: { xs: 2, sm: 3, md: 4 },
-                    height: '100%',
+                      height: '100%',
                     position: 'relative',
                     zIndex: 1,
                   }}
@@ -216,36 +216,36 @@ function Home() {
                       {feature.emoji}
                     </Typography>
                   </motion.div>
-                  <Typography 
-                    variant="h4" 
-                    gutterBottom
-                    sx={{
+                    <Typography 
+                      variant="h4" 
+                      gutterBottom
+                      sx={{
                       fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' },
-                      fontWeight: 600,
+                        fontWeight: 600,
                       color: 'white',
                       mb: { xs: 1, sm: 2 },
                       textShadow: '1px 1px 2px rgba(0,0,0,0.2)',
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-                  <Typography 
-                    variant="body1"
-                    sx={{ 
+                      }}
+                    >
+                      {feature.title}
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      sx={{
                       fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                      lineHeight: 1.6,
+                        lineHeight: 1.6,
                       color: 'rgba(255,255,255,0.95)',
                       textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-                    }}
-                  >
-                    {feature.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Grid>
-        ))}
-      </Grid>
+                      }}
+                    >
+                      {feature.description}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
 
             <Typography 
               variant="body1" 

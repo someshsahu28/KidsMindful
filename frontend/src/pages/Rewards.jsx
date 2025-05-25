@@ -28,12 +28,36 @@ function Rewards() {
     completedActivities: {},
   });
 
+  const clearProgress = () => {
+    const defaultProgress = {
+      points: 0,
+      level: 1,
+      earnedBadges: [],
+      completedActivities: {},
+    };
+    setProgress(defaultProgress);
+    localStorage.removeItem('rewardsProgress');
+    localStorage.removeItem('lastLoginTime');
+  };
+
   useEffect(() => {
-    // Load saved progress
-    const savedProgress = localStorage.getItem('rewardsProgress');
-    if (savedProgress) {
-      setProgress(JSON.parse(savedProgress));
+    // Check if this is a new session
+    const lastLoginTime = localStorage.getItem('lastLoginTime');
+    const currentTime = new Date().getTime();
+    
+    // If no last login or it's been more than 24 hours, clear progress
+    if (!lastLoginTime || (currentTime - parseInt(lastLoginTime)) > 24 * 60 * 60 * 1000) {
+      clearProgress();
+    } else {
+      // Load saved progress
+      const savedProgress = localStorage.getItem('rewardsProgress');
+      if (savedProgress) {
+        setProgress(JSON.parse(savedProgress));
+      }
     }
+    
+    // Update last login time
+    localStorage.setItem('lastLoginTime', currentTime.toString());
   }, []);
 
   const getCurrentGardenStage = () => {
@@ -43,25 +67,30 @@ function Rewards() {
   };
 
   const handleActivityComplete = (type) => {
+    const badge = badges.find(b => b.id === type);
+    if (!badge) return;
+
     const newProgress = {
       ...progress,
       points: progress.points + 1,
       completedActivities: {
         ...progress.completedActivities,
-        [type]: (progress.completedActivities[type] || 0) + 1,
+        [type]: Math.min((progress.completedActivities[type] || 0) + 1, badge.required)
       },
     };
 
     // Check for new badges
-    badges.forEach(badge => {
-      if (!progress.earnedBadges.includes(badge.id) &&
-          newProgress.completedActivities[badge.id] >= badge.required) {
-        newProgress.earnedBadges.push(badge.id);
-        if (sounds.effects?.success) {
-          sounds.effects.success.play();
-        }
+    if (!progress.earnedBadges.includes(badge.id) &&
+        newProgress.completedActivities[type] >= badge.required) {
+      newProgress.earnedBadges.push(badge.id);
+      if (sounds.effects?.success) {
+        const sound = sounds.effects.success;
+        sound.play();
+        setTimeout(() => {
+          sound.stop();
+        }, 5000);
       }
-    });
+    }
 
     setProgress(newProgress);
     localStorage.setItem('rewardsProgress', JSON.stringify(newProgress));
@@ -173,6 +202,23 @@ function Rewards() {
             </Grid>
           ))}
         </Grid>
+      </Box>
+
+      {/* Reset Progress Button */}
+      <Box sx={{ mt: 4, textAlign: 'center' }}>
+        <Button
+          variant="contained"
+          onClick={clearProgress}
+          sx={{
+            backgroundColor: '#FF6B6B',
+            color: '#FFF',
+            '&:hover': {
+              backgroundColor: '#FF4444',
+            },
+          }}
+        >
+          Reset Progress
+        </Button>
       </Box>
     </Box>
   );

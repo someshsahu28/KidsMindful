@@ -49,7 +49,7 @@ function DanceParty() {
     return () => {
       mounted = false;
       if (sounds.dance) {
-        sounds.dance.stop();
+      sounds.dance.stop();
       }
     };
   }, []);
@@ -94,7 +94,7 @@ function DanceParty() {
             }
 
             return [...prev, {
-              id: Date.now(),
+            id: Date.now(),
               emoji: backgroundEmojis[Math.floor(Math.random() * backgroundEmojis.length)],
               startX,
               startY,
@@ -111,7 +111,7 @@ function DanceParty() {
 
     startDancing();
 
-    return () => {
+      return () => {
       clearInterval(sequenceTimer);
       clearInterval(dancerInterval);
       if (sounds.dance) {
@@ -119,7 +119,7 @@ function DanceParty() {
         sounds.dance.stop();
         setSoundPlaying(false);
       }
-    };
+      };
   }, [isPlaying, isLoading]);
 
   const handleStart = async () => {
@@ -133,14 +133,14 @@ function DanceParty() {
     setIsPlaying(false);
     setDancingEmojis([]);
     if (sounds.dance) {
-      sounds.dance.stop();
+    sounds.dance.stop();
       setSoundPlaying(false);
     }
     setCurrentSequence(0);
   };
 
   if (isLoading) {
-    return (
+  return (
       <Paper
         elevation={3}
         sx={{
@@ -168,48 +168,48 @@ function DanceParty() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <Paper
-          elevation={3}
-          sx={{
-            width: '100%',
-            minHeight: '80vh',
-            position: 'relative',
-            background: 'linear-gradient(135deg, #FFE5E5 0%, #FFD1F1 100%)',
-            borderRadius: '20px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            p: 4,
-            mb: 4,
-          }}
-        >
-          <Typography variant="h4" gutterBottom sx={{ color: '#444', textShadow: '2px 2px 4px rgba(0,0,0,0.1)', mb: 4 }}>
-            Dance Party! 🎉
-          </Typography>
+    <Paper
+      elevation={3}
+      sx={{
+        width: '100%',
+        minHeight: '80vh',
+        position: 'relative',
+        background: 'linear-gradient(135deg, #FFE5E5 0%, #FFD1F1 100%)',
+        borderRadius: '20px',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        p: 4,
+        mb: 4,
+      }}
+    >
+      <Typography variant="h4" gutterBottom sx={{ color: '#444', textShadow: '2px 2px 4px rgba(0,0,0,0.1)', mb: 4 }}>
+        Dance Party! 🎉
+      </Typography>
 
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%',
-              height: '60vh',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              mb: 4,
-            }}
-          >
+      <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          height: '60vh',
+          backgroundColor: 'rgba(255,255,255,0.1)',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          mb: 4,
+        }}
+      >
             {/* Background Dancers */}
             <AnimatePresence>
               {dancingEmojis.map((dancer) => (
-                <motion.div
-                  key={dancer.id}
-                  initial={{ 
+          <motion.div
+            key={dancer.id}
+            initial={{ 
                     scale: 1,
                     x: dancer.startX,
                     y: dancer.startY,
-                  }}
-                  animate={{
+            }}
+            animate={{
                     scale: [1, 1.5, 1.5, 1],
                     x: [dancer.startX, '50%', '50%', dancer.startX],
                     y: [dancer.startY, '50%', '50%', dancer.startY],
@@ -246,15 +246,15 @@ function DanceParty() {
                     opacity: 1,
                     scale: [1, 1.2, 1],
                     rotate: [0, 360, 0],
-                  }}
+            }}
                   exit={{ opacity: 0, scale: 0 }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: 'reverse',
-                  }}
-                  style={{
-                    position: 'absolute',
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatType: 'reverse',
+            }}
+            style={{
+              position: 'absolute',
                     left: '50%',
                     top: '30%',
                     transform: 'translate(-50%, -50%)',
@@ -276,7 +276,7 @@ function DanceParty() {
                       animate={{
                         y: [0, -20, 0],
                         rotate: [0, 10, -10, 0],
-                      }}
+            }}
                       transition={{
                         duration: 1,
                         repeat: Infinity,
@@ -287,33 +287,33 @@ function DanceParty() {
                       {emoji}
                     </motion.span>
                   ))}
-                </motion.div>
+          </motion.div>
               )}
             </AnimatePresence>
-          </Box>
+      </Box>
 
-          <Button
-            variant="contained"
-            onClick={isPlaying ? handleStop : handleStart}
+      <Button
+        variant="contained"
+        onClick={isPlaying ? handleStop : handleStart}
             disabled={isLoading}
-            sx={{
-              fontSize: '1.4rem',
-              py: 2,
-              px: 6,
-              borderRadius: '30px',
-              backgroundColor: isPlaying ? '#FF9AA2' : '#98FB98',
-              color: '#4A4A4A',
-              '&:hover': {
-                backgroundColor: isPlaying ? '#FF8B93' : '#7DD389',
+        sx={{
+          fontSize: '1.4rem',
+          py: 2,
+          px: 6,
+          borderRadius: '30px',
+          backgroundColor: isPlaying ? '#FF9AA2' : '#98FB98',
+          color: '#4A4A4A',
+          '&:hover': {
+            backgroundColor: isPlaying ? '#FF8B93' : '#7DD389',
               },
               '&.Mui-disabled': {
                 backgroundColor: '#ccc',
-              }
-            }}
-          >
+          }
+        }}
+      >
             {isLoading ? 'Loading...' : (isPlaying ? 'Stop Dancing 🛑' : 'Start Dancing! 💃')}
-          </Button>
-        </Paper>
+      </Button>
+    </Paper>
       </motion.div>
     </AnimatePresence>
   );

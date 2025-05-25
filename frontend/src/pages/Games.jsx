@@ -32,6 +32,17 @@ function Games() {
 
   // Add effect to clean up sounds when component unmounts
   useEffect(() => {
+    // Check if this is a new session
+    const lastLoginTime = localStorage.getItem('lastLoginTime');
+    const currentTime = new Date().getTime();
+    
+    // If no last login or it's been more than 24 hours, clear all progress
+    if (!lastLoginTime || (currentTime - parseInt(lastLoginTime)) > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem('rewardsProgress');
+      localStorage.removeItem('lastLoginTime');
+      localStorage.setItem('lastLoginTime', currentTime.toString());
+    }
+
     return () => {
       // Stop all sounds when component unmounts
       if (sounds.effects) {
@@ -74,35 +85,47 @@ function Games() {
       'animal-sounds': 'focus'
     };
 
-    // Update points and completed activities
-    progress.points += 1;
-    const badgeId = gameToBadgeMap[gameId];
-    if (badgeId) {
-      progress.completedActivities[badgeId] = (progress.completedActivities[badgeId] || 0) + 1;
-    }
-
-    // Check for new badges
-    const badges = [
-      { id: 'focus', required: 5 },
-      { id: 'mindful', required: 10 },
-      { id: 'creative', required: 3 },
-      { id: 'story', required: 5 },
-      { id: 'dance', required: 10 },
-      { id: 'helper', required: 5 }
-    ];
-
-    badges.forEach(badge => {
-      if (!progress.earnedBadges.includes(badge.id) &&
-          progress.completedActivities[badge.id] >= badge.required) {
-        progress.earnedBadges.push(badge.id);
-        if (sounds.effects?.success) {
-          sounds.effects.success.play();
+    // Only update progress if score meets minimum threshold (70%)
+    if (score >= 70) {
+      // Update points and completed activities
+      progress.points += 1;
+      const badgeId = gameToBadgeMap[gameId];
+      if (badgeId) {
+        const currentProgress = progress.completedActivities[badgeId] || 0;
+        const badge = badges.find(b => b.id === badgeId);
+        if (badge) {
+          progress.completedActivities[badgeId] = Math.min(currentProgress + 1, badge.required);
         }
       }
-    });
 
-    // Save updated progress
-    localStorage.setItem('rewardsProgress', JSON.stringify(progress));
+      // Check for new badges
+      const badges = [
+        { id: 'focus', required: 5 },
+        { id: 'mindful', required: 10 },
+        { id: 'creative', required: 3 },
+        { id: 'story', required: 5 },
+        { id: 'dance', required: 10 },
+        { id: 'helper', required: 5 }
+      ];
+
+      badges.forEach(badge => {
+        if (!progress.earnedBadges.includes(badge.id) &&
+            progress.completedActivities[badge.id] >= badge.required) {
+          progress.earnedBadges.push(badge.id);
+          if (sounds.effects?.success) {
+            // Set a timeout to stop the success sound after 5 seconds
+            const sound = sounds.effects.success;
+            sound.play();
+            setTimeout(() => {
+              sound.stop();
+            }, 5000);
+          }
+        }
+      });
+
+      // Save updated progress
+      localStorage.setItem('rewardsProgress', JSON.stringify(progress));
+    }
   };
 
   const handleGameComplete = (score) => {
@@ -110,8 +133,22 @@ function Games() {
       setFinalScore(score);
       setGameComplete(true);
       setShowConfetti(true);
+      
+      // Stop any existing sounds
+      if (sounds.effects) {
+        Object.values(sounds.effects).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+      soundManager.stopAllSounds();
+      
+      // Play success sound with timeout
       if (sounds.effects?.success) {
-        sounds.effects.success.play();
+        const sound = sounds.effects.success;
+        sound.play();
+        setTimeout(() => {
+          sound.stop();
+        }, 5000);
       }
       
       // Update rewards progress
@@ -119,7 +156,16 @@ function Games() {
         updateRewardsProgress(selectedGame, score);
       }
       
-      setTimeout(() => setShowConfetti(false), 5000);
+      setTimeout(() => {
+        setShowConfetti(false);
+        // Ensure all sounds are stopped when confetti animation ends
+        if (sounds.effects) {
+          Object.values(sounds.effects).forEach(sound => {
+            if (sound && sound.stop) sound.stop();
+          });
+        }
+        soundManager.stopAllSounds();
+      }, 5000);
     });
   };
 
@@ -351,10 +397,10 @@ function Games() {
               You completed the game!
             </Typography>
             <Typography variant="h6" color="primary">
-              Score: {finalScore}
+              Score: {Math.round(finalScore)}/100
             </Typography>
             <Typography variant="body1" sx={{ mt: 2, color: '#666' }}>
-              You earned a reward point! 🌟
+              {finalScore >= 70 ? "You earned a reward point! 🌟" : "Keep practicing to earn rewards! 💫"}
               <br />
               Check your rewards garden to see your progress!
             </Typography>

@@ -44,7 +44,7 @@ function MoodTracker() {
 
   useEffect(() => {
     if (user?.id && token) {
-      fetchMoodHistory();
+    fetchMoodHistory();
     }
   }, [user, token]);
 
@@ -106,7 +106,7 @@ function MoodTracker() {
 
       const data = await response.json();
       console.log('Success response:', data);
-      
+
       setSnackbar({
         open: true,
         message: moods[index].message,
@@ -184,10 +184,10 @@ function MoodTracker() {
                         rotate: [0, 10, -10, 0],
                       } : {}}
                       transition={{ duration: 0.5 }}
-                    >
-                      <Typography variant="h2" sx={{ fontSize: '4rem' }}>
-                        {mood.emoji}
-                      </Typography>
+                  >
+                    <Typography variant="h2" sx={{ fontSize: '4rem' }}>
+                      {mood.emoji}
+                    </Typography>
                     </motion.div>
                     <Typography 
                       variant="h5" 
@@ -255,27 +255,27 @@ function MoodTracker() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card
-                      sx={{
-                        backgroundColor: moods.find(m => m.name === entry.mood)?.color || 'white',
-                        opacity: 0.9,
+                  <Card
+                    sx={{
+                      backgroundColor: moods.find(m => m.name === entry.mood)?.color || 'white',
+                      opacity: 0.9,
                         borderRadius: '15px',
                         transform: 'rotate(-2deg)',
                         transition: 'transform 0.3s ease',
                         '&:hover': {
                           transform: 'rotate(0deg) scale(1.05)',
                         },
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="h4" align="center">
-                          {moods.find(m => m.name === entry.mood)?.emoji}
-                        </Typography>
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h4" align="center">
+                        {moods.find(m => m.name === entry.mood)?.emoji}
+                      </Typography>
                         <Typography variant="body2" align="center" sx={{ mt: 1, color: 'white' }}>
-                          {new Date(entry.date).toLocaleDateString()}
-                        </Typography>
-                      </CardContent>
-                    </Card>
+                        {new Date(entry.date).toLocaleDateString()}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                   </motion.div>
                 </Grid>
               ))}

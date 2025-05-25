@@ -111,23 +111,26 @@ function AnimalSoundGame({ onGameComplete }) {
     // Stop any currently playing sounds
     soundManager.stopAllSounds();
     
-    // Play each sound in sequence with delay
+    // Play each sound in sequence with proper timing
     for (let i = 0; i < seq.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Short pause before playing
       try {
         if (sounds.animals[seq[i].name]) {
           setCurrentSound(seq[i]);
           const sound = sounds.animals[seq[i].name];
+          
+          // Play current sound for exactly 10 seconds
           await new Promise((resolve) => {
-            sound.stop(); // Stop any previous instance
+            soundManager.stopAllSounds(); // Stop all sounds before playing new one
             const soundId = sound.play();
-            sound.once('end', () => {
+            setTimeout(() => {
               sound.stop(soundId);
+              setCurrentSound(null);
               resolve();
-            });
+            }, 10000); // Play for 10 seconds
           });
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Pause after sound
-          setCurrentSound(null);
+          
+          // Add a pause between sounds
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       } catch (error) {
         console.warn(`Error playing ${seq[i].name} sound:`, error);
@@ -137,7 +140,10 @@ function AnimalSoundGame({ onGameComplete }) {
     setPlaying(false);
     setCanAnswer(true);
     setUserSequence([]);
-    sounds.effects.click.play(); // Play a sound to indicate it's user's turn
+    // Play a click sound to indicate it's user's turn
+    if (sounds.effects?.click) {
+      sounds.effects.click.play();
+    }
   };
 
   const handleAnimalClick = async (animal) => {
@@ -149,15 +155,17 @@ function AnimalSoundGame({ onGameComplete }) {
       if (sounds.animals[animal.name]) {
         setCurrentSound(animal);
         const sound = sounds.animals[animal.name];
+        
+        // Play the selected animal sound for exactly 10 seconds
         await new Promise((resolve) => {
-          sound.stop(); // Stop any previous instance
+          soundManager.stopAllSounds(); // Stop all sounds before playing new one
           const soundId = sound.play();
-          sound.once('end', () => {
+          setTimeout(() => {
             sound.stop(soundId);
+            setCurrentSound(null);
             resolve();
-          });
+          }, 10000);
         });
-        setCurrentSound(null);
       }
     } catch (error) {
       console.warn(`Error playing ${animal.name} sound:`, error);
@@ -169,20 +177,37 @@ function AnimalSoundGame({ onGameComplete }) {
     // Check if the answer is correct
     if (newUserSequence[newUserSequence.length - 1].name !== 
         sequence[newUserSequence.length - 1].name) {
-      sounds.effects.error.play();
+      if (sounds.effects?.error) {
+        sounds.effects.error.play();
+      }
       await new Promise(resolve => setTimeout(resolve, 1000));
       setGameOver(true);
-      onGameComplete(totalScore);
+      onGameComplete(Math.floor((score / currentLevel.sequenceLength) * 100));
       return;
     }
 
     // Check if sequence is complete
     if (newUserSequence.length === sequence.length) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      sounds.effects.success.play();
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setScore(score + 1);
+      if (sounds.effects?.complete) {
+        const sound = sounds.effects.complete;
+        sound.play();
+        setTimeout(() => {
+          sound.stop();
+        }, 2000);
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const newScore = score + 1;
+      setScore(newScore);
+      
+      // Only update total score when level is complete
+      if (round === currentLevel.sequenceLength) {
+        const levelScore = Math.floor((newScore / currentLevel.sequenceLength) * 100);
+        setTotalScore(prev => prev + levelScore);
+      }
+      
       setRound(round + 1);
+      setUserSequence([]); // Reset user sequence for next round
     } else {
       setCanAnswer(true); // Re-enable clicking for next sound
     }

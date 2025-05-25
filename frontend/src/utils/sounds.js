@@ -37,7 +37,7 @@ const createSound = (src, volume = 0.5) => {
             // Try to load and play
             sound.load();
             return new Promise((resolve) => {
-              sound.once('load', () => {
+            sound.once('load', () => {
                 const id = sound.play();
                 resolve(id);
               });
