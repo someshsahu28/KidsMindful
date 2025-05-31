@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
@@ -13,30 +13,45 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Container
+  Container,
+  Alert
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const menuItems = [
-    { text: 'Fun Activities 🎨', path: '/activities' },
-    { text: 'Mood Tracker 😊', path: '/mood-tracker' },
-    { text: 'Games 🎮', path: '/games' },
-    { text: 'Stories 📚', path: '/stories' },
-    { text: 'Rewards 🏆', path: '/rewards' },
-    { text: 'Need Help? 💭', path: '/help' }
+    { text: 'Fun Activities 🎨', path: '/activities', requiresAuth: true },
+    { text: 'Mood Tracker 😊', path: '/mood-tracker', requiresAuth: true },
+    { text: 'Games 🎮', path: '/games', requiresAuth: true },
+    { text: 'Stories 📚', path: '/stories', requiresAuth: true },
+    { text: 'Rewards 🏆', path: '/rewards', requiresAuth: true },
+    { text: 'Need Help? 💭', path: '/help', requiresAuth: false }
   ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleNavigation = (path, requiresAuth) => {
+    if (requiresAuth && !user) {
+      alert('Please login or sign up to access this feature! 🔒');
+      return;
+    }
+    navigate(path);
+    if (mobileOpen) {
+      handleDrawerToggle();
+    }
   };
 
   return (
@@ -120,8 +135,7 @@ function Navigation() {
               }}
             >
               <Button
-                component={Link}
-                to="/"
+                onClick={() => handleNavigation('/', false)}
                 sx={{ 
                   color: '#444',
                   backgroundColor: 'white',
@@ -147,8 +161,7 @@ function Navigation() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
-                    component={Link}
-                    to={item.path}
+                    onClick={() => handleNavigation(item.path, item.requiresAuth)}
                     sx={{ 
                       color: '#444',
                       backgroundColor: 'white',
@@ -204,11 +217,22 @@ function Navigation() {
                   <CloseIcon />
                 </IconButton>
               </Box>
+              {!user && (
+                <Alert 
+                  severity="info" 
+                  sx={{ 
+                    mx: 2, 
+                    mb: 2,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(229, 246, 253, 0.9)'
+                  }}
+                >
+                  Please sign in to access all features! 🎯
+                </Alert>
+              )}
               <List sx={{ flex: 1 }}>
                 <ListItem 
-                  component={Link} 
-                  to="/"
-                  onClick={handleDrawerToggle}
+                  onClick={() => handleNavigation('/', false)}
                   sx={{ 
                     py: 2,
                     color: 'inherit',
@@ -219,7 +243,8 @@ function Navigation() {
                     },
                     borderRadius: 2,
                     mx: 1,
-                    mb: 1
+                    mb: 1,
+                    cursor: 'pointer'
                   }}
                 >
                   <ListItemText 
@@ -240,9 +265,7 @@ function Navigation() {
                     transition={{ delay: index * 0.1 }}
                   >
                     <ListItem 
-                      component={Link} 
-                      to={item.path}
-                      onClick={handleDrawerToggle}
+                      onClick={() => handleNavigation(item.path, item.requiresAuth)}
                       sx={{ 
                         py: 2,
                         color: 'inherit',
@@ -253,7 +276,8 @@ function Navigation() {
                         },
                         borderRadius: 2,
                         mx: 1,
-                        mb: 1
+                        mb: 1,
+                        cursor: 'pointer'
                       }}
                     >
                       <ListItemText 

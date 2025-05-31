@@ -12,6 +12,7 @@ import Register from './pages/Register';
 import Admin from './pages/Admin';
 import StoryMode from './components/stories/StoryMode';
 import Rewards from './pages/Rewards';
+import ProtectedRoute from './components/ProtectedRoute';
 import './styles/animations.css';
 
 function App() {
@@ -30,7 +31,7 @@ function App() {
             backgroundColor: theme.palette.background.default
           }}
         >
-            <Navbar />
+          <Navbar />
           <Container 
             maxWidth="lg" 
             sx={{ 
@@ -44,15 +45,39 @@ function App() {
           >
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/activities" element={<Activities />} />
-              <Route path="/mood-tracker" element={<MoodTracker />} />
-              <Route path="/games" element={<Games />} />
+              <Route path="/activities" element={
+                <ProtectedRoute>
+                  <Activities />
+                </ProtectedRoute>
+              } />
+              <Route path="/mood-tracker" element={
+                <ProtectedRoute>
+                  <MoodTracker />
+                </ProtectedRoute>
+              } />
+              <Route path="/games" element={
+                <ProtectedRoute>
+                  <Games />
+                </ProtectedRoute>
+              } />
               <Route path="/help" element={<Help />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/stories" element={<StoryMode />} />
-              <Route path="/rewards" element={<Rewards />} />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              } />
+              <Route path="/stories" element={
+                <ProtectedRoute>
+                  <StoryMode />
+                </ProtectedRoute>
+              } />
+              <Route path="/rewards" element={
+                <ProtectedRoute>
+                  <Rewards />
+                </ProtectedRoute>
+              } />
             </Routes>
           </Container>
         </Box>
