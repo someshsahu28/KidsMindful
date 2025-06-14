@@ -154,7 +154,7 @@ const sounds = {
   },
   
   // Activity sounds
-  breath: createSound('/sounds/meditation.mp3', 0.5),
+  breath: createSound('/sounds/breath.mp3', 0.5),
   dance: createSound('/sounds/dance.mp3', 0.4),
   meditation: createSound('/sounds/meditation.mp3', 0.3),
   
