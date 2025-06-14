@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import sounds from '../../utils/sounds';
+import { soundManager } from '../../utils/soundManager';
 
 function BalloonBreathing() {
   const [isBreathing, setIsBreathing] = useState(false);
@@ -39,15 +40,34 @@ function BalloonBreathing() {
         }
       }
     }
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Stop any playing instruction sounds when phase changes
+      if (sounds.instructions) {
+        Object.values(sounds.instructions).forEach(sound => {
+          if (sound && sound.stop) sound.stop();
+        });
+      }
+    };
   }, [isBreathing, phase, timeLeft]);
 
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      soundManager.stopAllSounds();
+    };
+  }, []);
+
   const handleStart = () => {
+    // Stop any existing sounds before starting
+    soundManager.stopAllSounds();
     setIsBreathing(true);
     setPhase('idle');
   };
 
   const handleStop = () => {
+    // Stop all sounds when stopping
+    soundManager.stopAllSounds();
     setIsBreathing(false);
     setPhase('idle');
     setTimeLeft(0);
