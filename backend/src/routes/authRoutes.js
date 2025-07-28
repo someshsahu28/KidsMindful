@@ -1,6 +1,7 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import UserService from '../models/User.js';
+
 const router = express.Router();
 
 // Register route
@@ -32,7 +33,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if username already exists
-    const existingUser = await User.findOne({ where: { username } });
+    const existingUser = await UserService.findByUsername(username);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -65,7 +66,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Create user
-    const user = await User.create({
+    const user = await UserService.create({
       username,
       password,
       name,
@@ -117,44 +118,29 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Find user with password
-    const user = await User.scope('withPassword').findOne({ 
-      where: { username, isActive: true } 
-    });
+    // Authenticate user
+    const authResult = await UserService.authenticate(username, password);
 
-    if (!user) {
+    if (!authResult.success) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid username or password'
-      });
-    }
-
-    // Validate password
-    const isValidPassword = await user.validatePassword(password);
-    if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid username or password'
+        message: authResult.message
       });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id },
+      { id: authResult.user.id },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
-
-    // Remove password from response
-    const userResponse = user.toJSON();
-    delete userResponse.password;
 
     // Send success response
     return res.json({
       success: true,
       message: 'Login successful!',
       token,
-      user: userResponse
+      user: authResult.user
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -166,4 +152,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 

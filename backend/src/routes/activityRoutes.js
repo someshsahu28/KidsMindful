@@ -1,17 +1,12 @@
 import express from 'express';
-import Activity from '../models/Activity.js';
-import { Op } from 'sequelize';
+import ActivityService from '../models/Activity.js';
 
 const router = express.Router();
 
 // Get all activities
 router.get('/', async (req, res) => {
   try {
-    const activities = await Activity.findAll({
-      where: { isActive: true },
-      order: [['likes', 'DESC']]
-    });
-
+    const activities = await ActivityService.findAll();
     res.json(activities);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching activities', error: error.message });
@@ -21,16 +16,7 @@ router.get('/', async (req, res) => {
 // Get activities by mood
 router.get('/mood/:mood', async (req, res) => {
   try {
-    const activities = await Activity.findAll({
-      where: {
-        isActive: true,
-        targetMoods: {
-          [Op.contains]: [req.params.mood]
-        }
-      },
-      order: [['likes', 'DESC']]
-    });
-
+    const activities = await ActivityService.findByTargetMood(req.params.mood);
     res.json(activities);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching activities by mood', error: error.message });
@@ -41,30 +27,65 @@ router.get('/mood/:mood', async (req, res) => {
 router.get('/age/:age', async (req, res) => {
   try {
     const age = parseInt(req.params.age);
-    const activities = await Activity.findAll({
-      where: {
-        isActive: true,
-        recommendedAge: age
-      },
-      order: [['likes', 'DESC']]
-    });
-
+    const activities = await ActivityService.findByRecommendedAge(age);
     res.json(activities);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching activities by age', error: error.message });
   }
 });
 
-// Like an activity
-router.post('/:id/like', async (req, res) => {
+// Get activities by category
+router.get('/category/:category', async (req, res) => {
   try {
-    const activity = await Activity.findByPk(req.params.id);
+    const activities = await ActivityService.findByCategory(req.params.category);
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching activities by category', error: error.message });
+  }
+});
+
+// Get popular activities
+router.get('/popular', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const activities = await ActivityService.getPopularActivities(limit);
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching popular activities', error: error.message });
+  }
+});
+
+// Search activities
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+    const activities = await ActivityService.search(q);
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: 'Error searching activities', error: error.message });
+  }
+});
+
+// Get activity by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const activity = await ActivityService.findById(req.params.id);
     if (!activity) {
       return res.status(404).json({ message: 'Activity not found' });
     }
+    res.json(activity);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching activity', error: error.message });
+  }
+});
 
-    activity.likes += 1;
-    await activity.save();
+// Like an activity
+router.post('/:id/like', async (req, res) => {
+  try {
+    const activity = await ActivityService.incrementLikes(req.params.id);
     res.json(activity);
   } catch (error) {
     res.status(500).json({ message: 'Error liking activity', error: error.message });
@@ -83,12 +104,12 @@ router.post('/', async (req, res) => {
       recommendedAge
     } = req.body;
 
-    const activity = await Activity.create({
+    const activity = await ActivityService.create({
       title,
       description,
       category,
       imageUrl,
-      targetMoods,
+      targetMoods: targetMoods || [],
       recommendedAge,
       likes: 0,
       isActive: true
@@ -97,6 +118,30 @@ router.post('/', async (req, res) => {
     res.status(201).json(activity);
   } catch (error) {
     res.status(500).json({ message: 'Error creating activity', error: error.message });
+  }
+});
+
+// Update an activity (admin only)
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const activity = await ActivityService.update(id, updateData);
+    res.json(activity);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating activity', error: error.message });
+  }
+});
+
+// Delete an activity (admin only)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await ActivityService.softDelete(id);
+    res.json({ message: 'Activity deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting activity', error: error.message });
   }
 });
 

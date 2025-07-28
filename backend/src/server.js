@@ -1,10 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const path = require('path');
-const { testConnection } = require('./config/database');
-const authRoutes = require('./routes/authRoutes');
-const moodRoutes = require('./routes/moodRoutes');
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { testConnection } from './config/database.js';
+import authRoutes from './routes/authRoutes.js';
+import moodRoutes from './routes/moodRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -78,6 +84,7 @@ app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/moods', moodRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -134,4 +141,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Export for testing
-module.exports = { app, startServer }; 
+export { app, startServer }; 

@@ -1,36 +1,22 @@
-const { Sequelize } = require('sequelize');
-const path = require('path');
+import { PrismaClient } from "@prisma/client";
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: path.join(__dirname, '../../database.sqlite'),
-  logging: false, // Set to console.log to see SQL queries
-  define: {
-    timestamps: true,
-    underscored: true,
-  },
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  }
-});
+const prisma = new PrismaClient();
 
-// Test database connection
-const testConnection = async () => {
+// Test the connection
+export const testConnection = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('Database connection has been established successfully.');
-    
-    // Sync database (create tables if they don't exist)
-    await sequelize.sync();
-    console.log('Database synchronized successfully.');
+    await prisma.$connect();
+    console.log(" Database connected successfully");
     return true;
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error(" Database connection failed:", error);
     return false;
   }
 };
 
-module.exports = { sequelize, testConnection }; 
+// Graceful shutdown
+process.on("beforeExit", async () => {
+  await prisma.$disconnect();
+});
+
+export default prisma;
