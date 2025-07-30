@@ -10,17 +10,11 @@ A comprehensive mental health application designed specifically for children, fe
 - 🧘‍♂️ **Calming Activities** - Breathing exercises and relaxation techniques
 - 💭 **Resource Center** - Educational content and mental health resources
 - 🤖 **AI Story Generator** - Create personalized stories based on user input
-
-## 🚀 Live Demo
-
-- **Frontend**: [https://kids-mindful.vercel.app](https://kids-mindful.vercel.app)
-- **Backend API**: [https://kidsmindful.onrender.com](https://kidsmindful.onrender.com)
-
 ## 🛠️ Tech Stack
 
 - **Frontend**: React, Vite, Material-UI, Framer Motion, React Markdown
 - **Backend**: Node.js, Express, Prisma
-- **Database**: SQLite (development), PostgreSQL (production)
+- **Database**: PostgreSQL (production)
 - **AI Integration**: Google Gemini AI for story generation
 - **Deployment**: 
   - Frontend: Vercel
