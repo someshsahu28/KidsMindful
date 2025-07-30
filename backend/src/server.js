@@ -1,3 +1,4 @@
+import './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -8,6 +9,7 @@ import { testConnection } from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import moodRoutes from './routes/moodRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -85,6 +87,7 @@ app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 app.use('/api/auth', authRoutes);
 app.use('/api/moods', moodRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,6 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  __internal: {
+    engine: {
+      connectTimeout: 60000,
+      queryTimeout: 60000,
+    },
+  },
+});
 
 // Test the connection
 export const testConnection = async () => {

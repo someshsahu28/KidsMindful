@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, Container, Grid, IconButton } from '@mui/material';
+import { Box, Button, Typography, Grid, Paper, TextField, IconButton, Container } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import StarIcon from '@mui/icons-material/Star';
+import { ArrowBack, Send } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown';
 import sounds from '../../utils/sounds';
 
 const stories = [
@@ -121,6 +121,14 @@ const stories = [
         effects: ["🌸", "🌺", "🌹", "🌷"]
       }
     ]
+  },
+  {
+    id: 5,
+    title: "Create Your Own Story",
+    emoji: "🤖",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    isAI: true,
+    description: "Tell me what story you'd like!"
   }
 ];
 
@@ -129,24 +137,96 @@ function StoryMode() {
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    let effectsInterval;
-    if (showEffects && currentStory) {
-      effectsInterval = setInterval(() => {
-        setShowEffects(prev => !prev);
-      }, 2000);
+    if (showAIChat && messages.length === 0) {
+      setMessages([{
+        id: 1,
+        type: 'bot',
+        content: "Hi! I'm your story assistant. Tell me what kind of story you'd like me to create for you!",
+        timestamp: new Date()
+      }]);
     }
-    return () => clearInterval(effectsInterval);
-  }, [showEffects, currentStory]);
+  }, [showAIChat]);
 
   const handleStorySelect = (story) => {
+    if (story.isAI) {
+      setShowAIChat(true);
+      return;
+    }
     setCurrentStory(story);
     setCurrentScene(0);
     setIsPlaying(true);
     if (sounds.effects?.click) {
       sounds.effects.click.play();
     }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: inputMessage,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage(''); // Clear input immediately
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/ai/generate-story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: userMessage.content, // Use the saved content
+          ageGroup: 'children aged 5-12',
+          storyLength: 'medium (300-500 words)',
+          theme: 'adventure and friendship'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: data.data.story,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botMessage]);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error generating story:', error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'bot',
+        content: "Sorry, I couldn't generate a story right now. Please try again!",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleBackToStories = () => {
+    setShowAIChat(false);
+    setMessages([]);
+    setCurrentStory(null);
+    setIsPlaying(false);
+    setCurrentScene(0);
   };
 
   const handleNextScene = () => {
@@ -161,6 +241,147 @@ function StoryMode() {
       setCurrentScene(0);
     }
   };
+
+  // AI Chat Interface
+  if (showAIChat) {
+    return (
+      <Container maxWidth="md">
+        <Box sx={{ py: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <IconButton onClick={handleBackToStories} sx={{ mr: 2 }}>
+              <ArrowBack />
+            </IconButton>
+            <Typography variant="h4" sx={{ color: '#4A4A4A', fontWeight: 'bold' }}>
+              Create Your Story 🤖
+            </Typography>
+          </Box>
+
+          <Paper
+            elevation={3}
+            sx={{
+              height: '70vh',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: '15px',
+              overflow: 'hidden'
+            }}
+          >
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: 'auto',
+                p: 3,
+                background: '#f8f9fa'
+              }}
+            >
+              {messages.map((message) => (
+                <Box
+                  key={message.id}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+                    mb: 2
+                  }}
+                >
+                  <Paper
+                    elevation={1}
+                    sx={{
+                      p: 2,
+                      maxWidth: '70%',
+                      backgroundColor: message.type === 'user' ? '#f5f5f5' : 'white',
+                      color: message.type === 'user' ? '#000' : '#333',
+                      borderRadius: '18px',
+                      whiteSpace: 'pre-wrap'
+                    }}
+                  >
+                    {message.type === 'bot' ? (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <Typography variant="body1" sx={{ mb: 1 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          strong: ({ children }) => (
+                            <Typography component="span" sx={{ fontWeight: 'bold', color: '#000' }}>
+                              {children}
+                            </Typography>
+                          ),
+                          em: ({ children }) => (
+                            <Typography component="span" sx={{ fontStyle: 'italic' }}>
+                              {children}
+                            </Typography>
+                          )
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <Typography variant="body1" sx={{ fontWeight: 'normal' }}>
+                        {message.content}
+                      </Typography>
+                    )}
+                  </Paper>
+                </Box>
+              ))}
+              {isLoading && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+                  <Paper
+                    elevation={1}
+                    sx={{
+                      p: 2,
+                      backgroundColor: 'white',
+                      borderRadius: '18px'
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontStyle: 'italic', color: '#666' }}>
+                      Creating your story...
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+            </Box>
+
+            <Box
+              sx={{
+                p: 3,
+                backgroundColor: 'white',
+                borderTop: '1px solid #ddd',
+                display: 'flex',
+                gap: 2
+              }}
+            >
+              <TextField
+                fullWidth
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Tell me what story you'd like..."
+                variant="outlined"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '25px'
+                  }
+                }}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={isLoading}
+                variant="contained"
+                sx={{
+                  borderRadius: '25px',
+                  px: 4,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                }}
+              >
+                Send
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      </Container>
+    );
+  }
 
   const playVoice = () => {
     const currentVoice = currentStory.scenes[currentScene].voice;
@@ -289,14 +510,18 @@ function StoryMode() {
 
         <AnimatePresence mode="wait">
           {!currentStory ? (
-            <Grid container spacing={3}>
+            <Grid container spacing={3} justifyContent="center">
               {stories.map((story) => (
-                <Grid item xs={12} sm={6} key={story.id}>
+                <Grid item xs={12} sm={6} md={story.id === 5 ? 12 : 6} key={story.id}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     whileHover={{ scale: 1.05 }}
+                    style={{ 
+                      display: 'flex', 
+                      justifyContent: story.id === 5 ? 'center' : 'stretch' 
+                    }}
                   >
                     <Paper
                       elevation={3}
@@ -307,7 +532,9 @@ function StoryMode() {
                         background: story.background,
                         borderRadius: '15px',
                         position: 'relative',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        width: story.id === 5 ? '400px' : '100%',
+                        maxWidth: story.id === 5 ? '400px' : 'none'
                       }}
                       onClick={() => handleStorySelect(story)}
                     >
@@ -326,8 +553,25 @@ function StoryMode() {
                         {story.title}
                       </Typography>
                       <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                        Click to start the story!
+                        {story.isAI ? story.description : 'Click to start the story!'}
                       </Typography>
+                      {story.isAI && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: '15px',
+                            px: 2,
+                            py: 0.5
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: 'white', fontWeight: 'bold' }}>
+                            AI Powered
+                          </Typography>
+                        </Box>
+                      )}
                     </Paper>
                   </motion.div>
                 </Grid>
