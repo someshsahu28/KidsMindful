@@ -181,7 +181,7 @@ function StoryMode() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/generate-story', {
+      const response = await fetch('https://kidsmindful.onrender.com/api/ai/generate-story', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
