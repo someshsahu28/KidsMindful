@@ -1,7 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Typography, Grid, Paper, TextField, IconButton, Container } from '@mui/material';
+import { 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardContent, 
+  Box, 
+  IconButton, 
+  Paper, 
+  TextField, 
+  Button 
+} from '@mui/material';
+import { 
+  ArrowBack, 
+  Send, 
+  VolumeUp 
+} from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowBack, Send } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import sounds from '../../utils/sounds';
 
@@ -647,7 +662,7 @@ function StoryMode() {
                         color: 'white'
                       }}
                     >
-                      <VolumeUpIcon />
+                      <VolumeUp />
                     </IconButton>
                   </Box>
                 </Box>
