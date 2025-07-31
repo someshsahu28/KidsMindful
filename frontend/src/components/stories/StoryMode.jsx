@@ -295,25 +295,28 @@ function StoryMode() {
                   sx={{
                     display: 'flex',
                     justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
-                    mb: 2
+                    mb: 1
                   }}
                 >
                   <Paper
                     elevation={1}
                     sx={{
-                      p: 2,
+                      p: 1,
                       maxWidth: '70%',
                       backgroundColor: message.type === 'user' ? '#f5f5f5' : 'white',
                       color: message.type === 'user' ? '#000' : '#333',
                       borderRadius: '18px',
-                      whiteSpace: 'pre-wrap'
+                      whiteSpace: 'pre-wrap',
+                      '& > *': {
+                        lineHeight: 1.1
+                      }
                     }}
                   >
                     {message.type === 'bot' ? (
                       <ReactMarkdown
                         components={{
                           p: ({ children }) => (
-                            <Typography variant="body1" sx={{ mb: 1 }}>
+                            <Typography variant="body1" sx={{ mb: 0, mt: 0, lineHeight: 1.2 }}>
                               {children}
                             </Typography>
                           ),
@@ -326,6 +329,31 @@ function StoryMode() {
                             <Typography component="span" sx={{ fontStyle: 'italic' }}>
                               {children}
                             </Typography>
+                          ),
+                          h1: ({ children }) => (
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0, mt: 0, lineHeight: 1.2 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          h2: ({ children }) => (
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0, mt: 0, lineHeight: 1.2 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          h3: ({ children }) => (
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0, mt: 0, lineHeight: 1.2 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          ul: ({ children }) => (
+                            <Box component="ul" sx={{ mb: 0, mt: 0, pl: 1.5, py: 0 }}>
+                              {children}
+                            </Box>
+                          ),
+                          li: ({ children }) => (
+                            <Box component="li" sx={{ mb: 0, mt: 0, py: 0 }}>
+                              {children}
+                            </Box>
                           )
                         }}
                       >
